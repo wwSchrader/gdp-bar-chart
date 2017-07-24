@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
 import { select } from 'd3-selection';
-import { axisBottom, axisLeft } from 'd3-axis';
+import { axisBottom, axisRight } from 'd3-axis';
 import { timeFormat, timeParse } from 'd3-time-format';
 
 class BarChart extends Component {
@@ -32,15 +32,10 @@ class BarChart extends Component {
     createBarChart() {
         const node = this.node
 
-
-
         const gdpArray = this.getGdpArray(this.props.data);
         const dateArray = this.getDateArray(this.props.data);
 
-
         const yMax = max(gdpArray);
-
-
 
         const xScale = scaleLinear()
             .domain([dateArray[0], dateArray[dateArray.length - 1]])
@@ -48,11 +43,13 @@ class BarChart extends Component {
 
         const yScale = scaleLinear()
          .domain([0, yMax])
-         .range([0, this.props.size[1]]);
+         .range([this.props.size[1], 0]);
 
         const axisOnBottom = axisBottom(xScale)
             .tickFormat(timeFormat("%Y"))
             .ticks();
+
+        const axisOnRight = axisRight(yScale);
 
 
 
@@ -73,15 +70,19 @@ class BarChart extends Component {
             .attr("transform", "translate(0," + this.props.size[1] +")")
             .call(axisOnBottom);
 
+        select(node)
+          .append('g')
+          .call(axisOnRight);
+
 
         select(node)
           .selectAll('rect')
           .data(this.props.data)
           .style('fill', '#fe9922')
           .attr('x', (d,i) => i )
-          .attr('y', d => this.props.size[1] - yScale(d[1]))
-          .attr('height', d => yScale(d[1]))
-          .attr('width', 100);
+          .attr('y', d => yScale(d[1]))
+          .attr('height', d => yScale(0) - yScale(d[1]))
+          .attr('width', 5);
     }
 
     componentDidMount() {
